@@ -1,28 +1,29 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { Navbar } from './components/Layout/Navbar';
-import { HomePage } from './pages/HomePage';
-import { ListingsPage } from './pages/ListingsPage';
-import { PropertyDetailPage } from './pages/PropertyDetailPage';
-import { FavoritesPage } from './pages/FavoritesPage';
-import { DashboardPage } from './pages/DashboardPage';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { Navbar } from "./components/Layout/Navbar";
+import { HomePage } from "./pages/HomePage";
+import { ListingsPage } from "./pages/ListingsPage";
+import { PropertyDetailPage } from "./pages/PropertyDetailPage";
+import { FavoritesPage } from "./pages/FavoritesPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import WalletModal from "./components/Modals/WalletModal"; 
+import { WalletProvider, useWallet } from "./context/WalletContext"; 
 
 const AppContent: React.FC = () => {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [favorites, setFavorites] = useState(['1', '4']);
+  const [favorites, setFavorites] = useState(["1", "4"]);
+  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  const { account } = useWallet();
+
   const handleConnectWallet = () => {
-    // Mock wallet connection with animation
-    setTimeout(() => {
-      setWalletConnected(!walletConnected);
-    }, 1000);
+    setModalOpen(true);
   };
 
   const handleToggleFavorite = (propertyId: string) => {
     setFavorites(prev => 
       prev.includes(propertyId)
-        ? prev.filter(id => id !== propertyId)
+        ? prev.filter((id) => id !== propertyId)
         : [...prev, propertyId]
     );
   };
@@ -33,11 +34,8 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      <Navbar 
-        onConnectWallet={handleConnectWallet}
-        walletConnected={walletConnected}
-      />
-      
+      <Navbar onConnectWallet={handleConnectWallet} walletConnected={!!account} />
+
       <Routes>
         <Route 
           path="/" 
@@ -74,22 +72,26 @@ const AppContent: React.FC = () => {
         <Route 
           path="/dashboard" 
           element={
-            <DashboardPage 
-              walletConnected={walletConnected}
+            <DashboardPage
+              walletConnected={!!account}
               onConnectWallet={handleConnectWallet}
             />
-          } 
+          }
         />
       </Routes>
+
+      <WalletModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 };
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <WalletProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </WalletProvider>
   );
 }
 
